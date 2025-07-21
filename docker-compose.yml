@@ -1,0 +1,45 @@
+services:
+
+  kaspa_rest_server:
+    container_name: kaspa_rest_server
+    image: kaspanet/kaspa-rest-server:latest
+    restart: unless-stopped
+    environment:
+      KASPAD_WRPC_URL: ws://kaspad:17110
+      SQL_URI: postgresql+asyncpg://postgres:postgres@kaspa_db:5432/postgres
+      USE_SCRIPT_FOR_ADDRESS: "true"
+    ports:
+      - "0.0.0.0:8000:8000"
+
+  simply_kaspa_indexer:
+    container_name: simply_kaspa_indexer
+    image: supertypo/simply-kaspa-indexer:latest
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:8500:8500"
+    command: -u -s ws://kaspad:17110 -d postgresql://postgres:postgres@kaspa_db:5432/postgres --exclude-fields=tx_out_script_public_key_address
+
+  kaspad:
+    container_name: kaspad
+    image: supertypo/rusty-kaspad
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:16110:16110"
+      - "0.0.0.0:17110:17110"
+    volumes:
+      - /var/kaspad:/app/data/
+    command: kaspad --yes --nologfiles --disable-upnp --utxoindex --rpclisten=0.0.0.0:16110 --rpclisten-borsh=0.0.0.0:17110
+
+  kaspa_db:
+    container_name: kaspa_db
+    image: postgres:17-alpine
+    restart: unless-stopped
+    shm_size: 4G
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "0.0.0.0:5432:5432"
+    volumes:
+      - /var/kaspa_db/:/var/lib/postgresql/data/
