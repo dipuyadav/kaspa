@@ -27,7 +27,7 @@ services:
       - "0.0.0.0:16110:16110"
       - "0.0.0.0:17110:17110"
     volumes:
-      - /var/kaspad:/app/data/
+      - /data/kaspad:/app/data/
     command: kaspad --yes --nologfiles --disable-upnp --utxoindex --rpclisten=0.0.0.0:16110 --rpclisten-borsh=0.0.0.0:17110
 
   kaspa_db:
@@ -42,4 +42,6 @@ services:
     ports:
       - "0.0.0.0:5432:5432"
     volumes:
-      - /var/kaspa_db/:/var/lib/postgresql/data/
+      - /data/kaspa_db/:/var/lib/postgresql/data/
+      - /data/custom-postgresql.conf:/etc/postgresql/postgresql.conf
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
